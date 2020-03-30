@@ -1,0 +1,96 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'TimedUserWidgetUI.ui'
+#
+# Created by: PyQt5 UI code generator 5.13.0
+#
+# WARNING! All changes made in this file will be lost!
+
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+
+class Ui_Form(object):
+    def setupUi(self, Form):
+        Form.setObjectName("Form")
+        Form.resize(546, 309)
+        Form.setMinimumSize(QtCore.QSize(300, 0))
+        Form.setBaseSize(QtCore.QSize(520, 300))
+        self.gridLayout = QtWidgets.QGridLayout(Form)
+        self.gridLayout.setContentsMargins(15, 0, 0, 0)
+        self.gridLayout.setObjectName("gridLayout")
+        self.TimedUserWidget = QtWidgets.QWidget(Form)
+        self.TimedUserWidget.setEnabled(True)
+        self.TimedUserWidget.setObjectName("TimedUserWidget")
+        self.gridLayout_2 = QtWidgets.QGridLayout(self.TimedUserWidget)
+        self.gridLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout_2.setVerticalSpacing(6)
+        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.timeLabel = QtWidgets.QLabel(self.TimedUserWidget)
+        self.timeLabel.setEnabled(False)
+        font = QtGui.QFont()
+        font.setPointSize(18)
+        self.timeLabel.setFont(font)
+        self.timeLabel.setFrameShape(QtWidgets.QFrame.Box)
+        self.timeLabel.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.timeLabel.setLineWidth(2)
+        self.timeLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.timeLabel.setObjectName("timeLabel")
+        self.gridLayout_2.addWidget(self.timeLabel, 1, 0, 1, 1)
+        self.userInfoLayout = QtWidgets.QHBoxLayout()
+        self.userInfoLayout.setContentsMargins(0, 5, -1, 5)
+        self.userInfoLayout.setSpacing(9)
+        self.userInfoLayout.setObjectName("userInfoLayout")
+        self.userLabel = QtWidgets.QLabel(self.TimedUserWidget)
+        self.userLabel.setEnabled(False)
+        self.userLabel.setMaximumSize(QtCore.QSize(16777215, 39))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.userLabel.setFont(font)
+        self.userLabel.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.userLabel.setObjectName("userLabel")
+        self.userInfoLayout.addWidget(self.userLabel)
+        self.line = QtWidgets.QFrame(self.TimedUserWidget)
+        self.line.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.line.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line.setObjectName("line")
+        self.userInfoLayout.addWidget(self.line)
+        self.baseTimeLabel = QtWidgets.QLabel(self.TimedUserWidget)
+        self.baseTimeLabel.setEnabled(False)
+        self.baseTimeLabel.setMaximumSize(QtCore.QSize(16777215, 39))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.baseTimeLabel.setFont(font)
+        self.baseTimeLabel.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.baseTimeLabel.setObjectName("baseTimeLabel")
+        self.userInfoLayout.addWidget(self.baseTimeLabel)
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.userInfoLayout.addItem(spacerItem)
+        self.gridLayout_2.addLayout(self.userInfoLayout, 0, 0, 1, 1)
+        self.startPushButton = QtWidgets.QPushButton(self.TimedUserWidget)
+        self.startPushButton.setEnabled(False)
+        self.startPushButton.setMinimumSize(QtCore.QSize(0, 45))
+        self.startPushButton.setBaseSize(QtCore.QSize(0, 0))
+        font = QtGui.QFont()
+        font.setPointSize(15)
+        font.setBold(True)
+        font.setWeight(75)
+        self.startPushButton.setFont(font)
+        self.startPushButton.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.startPushButton.setObjectName("startPushButton")
+        self.gridLayout_2.addWidget(self.startPushButton, 2, 0, 1, 1)
+        self.gridLayout_2.setColumnStretch(0, 1)
+        self.gridLayout_2.setRowStretch(0, 1)
+        self.gridLayout_2.setRowStretch(1, 4)
+        self.gridLayout.addWidget(self.TimedUserWidget, 0, 0, 1, 1)
+
+        self.retranslateUi(Form)
+        QtCore.QMetaObject.connectSlotsByName(Form)
+
+    def retranslateUi(self, Form):
+        _translate = QtCore.QCoreApplication.translate
+        Form.setWindowTitle(_translate("Form", "Form"))
+        self.timeLabel.setText(_translate("Form", "Time Left:"))
+        self.userLabel.setText(_translate("Form", "User:"))
+        self.baseTimeLabel.setText(_translate("Form", "Base Time:"))
+        self.startPushButton.setText(_translate("Form", "Start"))
