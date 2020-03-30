@@ -1,11 +1,10 @@
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets
 from GUI import MainWindowUI
 import qdarkstyle
 from TimeController import TimeController
 from GUI.CustomGUI import GUIMessageController
 from GUI import CustomGUI, CustomGuiModules
 from Utils.UsefulUtils import reload_after
-from Utils.FileUtils import get_app_data_folder
 
 
 class Gui(MainWindowUI.Ui_MainWindow):
