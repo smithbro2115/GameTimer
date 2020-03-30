@@ -23,7 +23,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='Video Game Tracker',
+          name='Game Timer',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
@@ -31,3 +31,12 @@ exe = EXE(pyz,
           upx_exclude=[],
           runtime_tmpdir=None,
           console=False, icon="icon.ico" )
+
+app = BUNDLE(exe,
+         name='Game Timer.app',
+         icon='icon.icns',
+         bundle_identifier=None,
+         info_plist={
+            'NSHighResolutionCapable': 'True'
+            }
+         )
