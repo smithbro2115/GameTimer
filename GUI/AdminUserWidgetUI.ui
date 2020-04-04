@@ -181,13 +181,6 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="0">
-         <widget class="Line" name="line_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
-        </item>
         <item row="2" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
@@ -222,6 +215,13 @@
           </property>
          </widget>
         </item>
+        <item row="5" column="0">
+         <widget class="Line" name="line_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
         <item row="4" column="0">
          <widget class="QPushButton" name="userReportPushButton">
           <property name="focusPolicy">
@@ -229,6 +229,16 @@
           </property>
           <property name="text">
            <string>User Report</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QPushButton" name="refreshPushButton">
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="text">
+           <string>Refresh</string>
           </property>
          </widget>
         </item>
