@@ -4,6 +4,7 @@ from GUI import AreYouSureDialog as AreYouSureUI, Error as ErrorUI, SettingsUI, 
 from PyQt5 import QtCore, QtWidgets, QtGui
 from Utils.UsefulUtils import convert_string_to_bool
 from Utils.CachingUtils import read_from_config
+from Utils.FileUtils import resource_path
 import qdarkstyle
 import os
 
@@ -415,6 +416,17 @@ class AdminUserWidget(WidgetTemplate):
     def make_list_items(self):
         for user in self.parent_gui.time_controller.current_users.values():
             item = QtWidgets.QListWidgetItem(user.name)
+            try:
+                if user.user_clock.state:
+                    if user.is_time_up():
+                        icon = QtGui.QIcon(resource_path("Graphics/over.png"))
+                    else:
+                        icon = QtGui.QIcon(resource_path("Graphics/active.png"))
+                else:
+                    icon = QtGui.QIcon(resource_path("Graphics/inactive.png"))
+            except AttributeError:
+                icon = QtGui.QIcon(resource_path("Graphics/inactive.png"))
+            item.setIcon(icon)
             item.setData(8, user)
             yield item
 

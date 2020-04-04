@@ -14,6 +14,7 @@ class Gui(MainWindowUI.Ui_MainWindow):
         self.gui_message_controller = None
         self.current_user_view = None
         self.admin_dialog = False
+        self.path_not_found_dialog = False
         self.userListWidget = CustomGuiModules.SelectionListWidget()
 
     def setup_additional(self, main_window):
@@ -149,15 +150,18 @@ class Gui(MainWindowUI.Ui_MainWindow):
                 return item
 
     def users_folder_could_not_be_found(self):
-        dialog = CustomGuiModules.PathNotFoundDialog()
-        result = dialog.exec()
-        if result:
-            if dialog.state == "new_path":
-                CustomGUI.get_new_users_path()
-            self.time_controller.load()
-            self.time_controller.get_last_user()
-        else:
-            self.main_window.close()
+        if not self.path_not_found_dialog:
+            self.path_not_found_dialog = True
+            dialog = CustomGuiModules.PathNotFoundDialog()
+            result = dialog.exec()
+            if result:
+                if dialog.state == "new_path":
+                    CustomGUI.get_new_users_path()
+                self.path_not_found_dialog = False
+                self.time_controller.load()
+                self.time_controller.get_last_user()
+            else:
+                sys.exit()
 
 
 class MainWindow(QtWidgets.QMainWindow):
