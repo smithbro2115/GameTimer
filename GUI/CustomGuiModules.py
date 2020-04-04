@@ -314,6 +314,7 @@ class AdminUserWidget(WidgetTemplate):
         self.ui.reportTableWidget.setFocusPolicy(QtCore.Qt.NoFocus)
         self.ui.userReportPushButton.setVisible(False)
         self.adminUserListWidget.itemSelectionChanged.connect(self.admin_list_selection_changed)
+        self.ui.refreshPushButton.clicked.connect(self.refresh_clicked)
         self.set_user_options()
         self.set_user_label(user)
         self.add_users()
@@ -368,6 +369,9 @@ class AdminUserWidget(WidgetTemplate):
 
     def delete_user_pushed(self):
         self.parent_gui.delete_user(self.current_selected_user)
+
+    def refresh_clicked(self):
+        self.add_users()
 
     @reload_last_user_after
     def add_users(self):
