@@ -131,6 +131,8 @@ class NewUserDialog(DialogTemplate):
                 self.ui.adminCheckBox.setEnabled(False)
                 self.setWindowTitle("New Admin")
                 self.set_admin()
+            elif key == "password":
+                self.ui.passwordLineEdit.setText(value)
             elif key == 'edit' and value is True:
                 self.setWindowTitle("Edit User")
 
@@ -467,8 +469,8 @@ class TimedUserWidget(WidgetTemplate):
         self.signals = TimedUserWidgetSignals()
         self.ui.startPushButton.clicked.connect(lambda: self.signals.start_button_pushed.emit())
         self.set_start_button_text(user)
-        self.update_time(user)
         self.ui.timeLabel.setStyleSheet("QLabel { border: 2px solid black; }")
+        self.update_time(user)
 
     def start_button_clicked(self):
         self.signals.start_button_pushed.emit()

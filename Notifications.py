@@ -25,6 +25,13 @@ class NotificationManager:
             add_to_config("SETTINGS", "time_between_alarms", 60)
             return 60
 
+    def interacted(self, user):
+        if user.user_clock.state and not user.is_time_up() and not user.is_warning_time():
+            play_started_tone()
+            return True
+        if not user.user_clock.state:
+            play_stopped_tone()
+
     def user_conditions(self, user):
         return user == self.parent.current_user and user.user_clock.state
 
@@ -33,6 +40,7 @@ class NotificationManager:
             if self.time_since_last_warning_tone is None:
                 play_warning_tone()
                 self.time_since_last_warning_tone = datetime.now()
+                return True
 
     def check_alarm(self, user):
         if self.user_conditions(user):
@@ -42,6 +50,7 @@ class NotificationManager:
             elif (datetime.now() - self.time_since_last_alarm_tone).total_seconds() > self.get_time_between_alarms():
                 play_alarm_tone(1)
                 self.time_since_last_alarm_tone = datetime.now()
+            return True
 
 
 def play_warning_tone(loops=2):
@@ -51,4 +60,14 @@ def play_warning_tone(loops=2):
 
 def play_alarm_tone(loops=2):
     pygame.mixer.music.load(resource_path("Sounds\\alarm.mp3"))
+    pygame.mixer.music.play(loops)
+
+
+def play_started_tone(loops=1):
+    pygame.mixer.music.load(resource_path("Sounds\\started.mp3"))
+    pygame.mixer.music.play(loops)
+
+
+def play_stopped_tone(loops=1):
+    pygame.mixer.music.load(resource_path("Sounds\\stopped.mp3"))
     pygame.mixer.music.play(loops)

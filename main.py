@@ -64,7 +64,7 @@ class Gui(MainWindowUI.Ui_MainWindow):
         self.reset()
         self.time_controller.load()
         try:
-            self.time_controller.switch_user(self.time_controller.current_users[last_user])
+            self.time_controller.switch_user(self.time_controller.current_users[last_user], login_required=False)
             self.userListWidget.setCurrentItem(self.get_list_item_from_id(last_user))
         except KeyError:
             self.time_controller.switch_user(last_user)

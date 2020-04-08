@@ -14,8 +14,14 @@ class UserClock:
     def total_time_spent_today(self):
         self.load()
         if len(self.current_time_set) == 1:
-            time_since_start = datetime.now() - self.current_time_set[0]
-            return self._total_time_spent_today + time_since_start
+            stop_time = datetime.now()
+            if stop_time.date() == self.current_time_set[0].date():
+                time_since_start = datetime.now() - self.current_time_set[0]
+                return self._total_time_spent_today + time_since_start
+            else:
+                start_time = datetime.strptime(f"{stop_time.day} {stop_time.month} {stop_time.year}",
+                                                   "%d %m %Y")
+                return stop_time - start_time
         else:
             return self._total_time_spent_today
 
@@ -84,6 +90,10 @@ class UserClock:
             if start_datetime.date() != date:
                 start_datetime = datetime.strptime(f"{stop_datetime.day} {stop_datetime.month} {stop_datetime.year}",
                                                    "%d %m %Y")
+            if stop_datetime.date() != date:
+                stop_datetime = datetime.strptime(f"{start_datetime.day} {start_datetime.month} {start_datetime.year} "
+                                                   f"23 59 59",
+                                                   "%d %m %Y %H %M %S")
             total_time += stop_datetime - start_datetime
         return total_time
 
@@ -113,11 +123,21 @@ class UserClock:
     def group_all_time_sets_into_days(time_sets):
         days_and_time_sets = {}
         for time_set in time_sets:
-            date = time_set[0].date()
+            start_date = time_set[0].date()
             try:
-                days_and_time_sets[date].append(time_set)
+                stop_date = time_set[1].date()
+            except IndexError:
+                stop_date = datetime.now().date()
+                time_set.append(datetime.now())
+            try:
+                days_and_time_sets[start_date].append(time_set)
             except KeyError:
-                days_and_time_sets[date] = [time_set]
+                days_and_time_sets[start_date] = [time_set]
+            if start_date != stop_date:
+                try:
+                    days_and_time_sets[stop_date].append(time_set)
+                except KeyError:
+                    days_and_time_sets[stop_date] = [time_set]
         return days_and_time_sets
 
     @staticmethod

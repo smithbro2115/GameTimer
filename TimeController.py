@@ -94,8 +94,8 @@ class TimeController:
         except AttributeError:
             pass
 
-    def switch_user(self, user):
-        if self.parent.log_in(user):
+    def switch_user(self, user, login_required=True):
+        if not login_required or self.parent.log_in(user):
             self.current_user = user
             self.notification_manager.reset()
             self.load_new_current_user_into_gui(self.current_user)
@@ -140,6 +140,7 @@ class TimeController:
         if self.current_user:
             self.notification_manager.reset()
             self.current_user.user_clock.interact()
+            self.notification_manager.interacted(self.current_user)
 
 
 class TimeCheckerSignals(QObject):
