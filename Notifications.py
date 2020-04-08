@@ -54,20 +54,20 @@ class NotificationManager:
 
 
 def play_warning_tone(loops=2):
-    pygame.mixer.music.load(resource_path("Sounds\\warning.mp3"))
+    pygame.mixer.music.load(resource_path("Sounds/warning.mp3"))
     pygame.mixer.music.play(loops)
 
 
 def play_alarm_tone(loops=2):
-    pygame.mixer.music.load(resource_path("Sounds\\alarm.mp3"))
+    pygame.mixer.music.load(resource_path("Sounds/alarm.mp3"))
     pygame.mixer.music.play(loops)
 
 
 def play_started_tone(loops=1):
-    pygame.mixer.music.load(resource_path("Sounds\\started.mp3"))
+    pygame.mixer.music.load(resource_path("Sounds/started.mp3"))
     pygame.mixer.music.play(loops)
 
 
 def play_stopped_tone(loops=1):
-    pygame.mixer.music.load(resource_path("Sounds\\stopped.mp3"))
+    pygame.mixer.music.load(resource_path("Sounds/stopped.mp3"))
     pygame.mixer.music.play(loops)
