@@ -1,3 +1,4 @@
+import logging
 from PyQt5 import QtCore, QtWidgets
 from GUI import MainWindowUI
 import qdarkstyle
@@ -5,6 +6,9 @@ from TimeController import TimeController
 from GUI.CustomGUI import GUIMessageController
 from GUI import CustomGUI, CustomGuiModules
 from Utils.UsefulUtils import reload_after
+from Utils import FileUtils
+from datetime import datetime
+import CrashReports
 
 
 class Gui(MainWindowUI.Ui_MainWindow):
@@ -108,7 +112,6 @@ class Gui(MainWindowUI.Ui_MainWindow):
         list_items = list(CustomGUI.make_list_items_from_users(users))
         self.add_items_to_users_list(list_items)
         self.gui_message_controller.users_loaded()
-        # self.userListWidget.setSel
 
     def add_items_to_users_list(self, items):
         for item in items:
@@ -170,9 +173,29 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui = gui_ui
 
 
+def custom_except_hook(exctype, value, tb):
+    mainWindow.setEnabled(False)
+    logging.basicConfig(format='%(asctime)s %(message)s',
+                        datefmt='%m/%d/%Y %I:%M:%S %p',
+                        filemode='w',
+                        filename=f"{FileUtils.get_app_data_folder('logging')}/exceptions.log",
+                        level=logging.WARNING)
+    logging.error("Uncaught exception", exc_info=(exctype, value, tb))
+    time_crashed = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+    CrashReports.send_exception(time_crashed)
+    mainWindow.close()
+    dialog = CustomGuiModules.CrashReportDialog()
+    dialog.exec()
+    if dialog.result():
+        CrashReports.send_crash_report(time_crashed, dialog.ui.reportTextEdit.toPlainText())
+    sys.__excepthook__(exctype, value, tb)
+    sys.exit()
+
+
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
+    sys.excepthook = custom_except_hook
     ui = Gui()
     mainWindow = MainWindow(ui)
     ui.setupUi(mainWindow)

@@ -1,3 +1,5 @@
+botocore
+boto3
 altgraph==0.17
 future==0.18.2
 helpdev==0.6.10

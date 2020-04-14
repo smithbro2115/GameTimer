@@ -1,6 +1,6 @@
 from GUI.NewUserUI import Ui_Dialog as NewUserUI
 from GUI import AreYouSureDialog as AreYouSureUI, Error as ErrorUI, SettingsUI, LogInUI, AdminUserWidgetUI,\
-    TimedUserWidgetUI, ModifyTimeDialogUI, PathNotFoundUI
+    TimedUserWidgetUI, ModifyTimeDialogUI, PathNotFoundUI, CrashReportUI
 from PyQt5 import QtCore, QtWidgets, QtGui
 from Utils.UsefulUtils import convert_string_to_bool
 from Utils.CachingUtils import read_from_config
@@ -532,6 +532,18 @@ class TimedUserWidget(WidgetTemplate):
             self.timeLabel.setText(f"Time Left:")
         self.set_time_label_color(user)
         self.set_start_button_text(user)
+
+
+class CrashReportDialog(DialogTemplate):
+    def __init__(self, parent=None):
+        super(CrashReportDialog, self).__init__(CrashReportUI.Ui_Dialog, parent)
+        self.ui.sendPushButton.clicked.connect(self.accept)
+        self.ui.cancelPushButton.clicked.connect(self.close)
+        self.ui.sendPushButton.setEnabled(False)
+        self.ui.reportTextEdit.textChanged.connect(self.report_line_edit_changed)
+
+    def report_line_edit_changed(self):
+        self.ui.sendPushButton.setEnabled(self.ui.reportTextEdit.toPlainText().strip() != "")
 
 
 def are_you_sure_prompt(msg):

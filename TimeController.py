@@ -57,7 +57,7 @@ class TimeController:
     def load(self):
         try:
             self.current_users = self.convert_users_list_to_dict(load_users())
-        except FileNotFoundError:
+        except (FileNotFoundError, OSError):
             self.parent.users_folder_could_not_be_found()
             self.make_time_checker()
         else:
