@@ -119,26 +119,27 @@ class UserClock:
                 days_and_time_spent[date] = self.get_total_time_from_time_sets(times, date)
         return days_and_time_spent
 
-    @staticmethod
-    def group_all_time_sets_into_days(time_sets):
+    def group_all_time_sets_into_days(self, time_sets):
         days_and_time_sets = {}
         for time_set in time_sets:
-            start_date = time_set[0].date()
-            try:
-                stop_date = time_set[1].date()
-            except IndexError:
-                stop_date = datetime.now().date()
-                time_set.append(datetime.now())
-            try:
-                days_and_time_sets[start_date].append(time_set)
-            except KeyError:
-                days_and_time_sets[start_date] = [time_set]
-            if start_date != stop_date:
+            for day in self.get_all_days_from_time_set(time_set):
                 try:
-                    days_and_time_sets[stop_date].append(time_set)
+                    days_and_time_sets[day].append(time_set)
                 except KeyError:
-                    days_and_time_sets[stop_date] = [time_set]
+                    days_and_time_sets[day] = [time_set]
         return days_and_time_sets
+
+    @staticmethod
+    def get_all_days_from_time_set(time_set):
+        start_date = time_set[0].date()
+        try:
+            stop_date = time_set[1].date()
+        except IndexError:
+            stop_date = datetime.now().date()
+            time_set.append(datetime.now())
+        total_days = int((stop_date - start_date).total_seconds()/60/60/24)+1
+        for i in range(total_days):
+            yield time_set[0].date() + timedelta(days=i)
 
     @staticmethod
     def parse_rows_from_today(rows):
@@ -184,20 +185,27 @@ class TimeLimit:
     @property
     def base_time(self):
         base_time_dict = CachingUtils.read_dict_from_csv_file(self.base_time_file_path)
-        base_time_string = base_time_dict[str(datetime.now().date())]
+        base_time_string = list(base_time_dict.values())[-1]
         return timedelta(minutes=int(base_time_string))
 
     @base_time.setter
     def base_time(self, value: int):
-        new_base_time = {datetime.now().date(): value}
-        CachingUtils.add_to_dict_from_csv_file(self.base_time_file_path, new_base_time)
+        self.add_to_csv_if_different(value)
+
+    def add_to_csv_if_different(self, base_time):
+        base_time_dict = CachingUtils.read_dict_from_csv_file(self.base_time_file_path)
+        if timedelta(minutes=base_time) != timedelta(minutes=int(list(base_time_dict.values())[-1])):
+            new_base_time = {datetime.now().date(): base_time}
+            CachingUtils.add_to_dict_from_csv_file(self.base_time_file_path, new_base_time)
 
     @property
     def history(self):
         self.load()
-        rows = self.rows + self.convert_base_time_limits_to_rows(self.base_times)
-        parsed_rows = self.parse_rows(rows)
-        return self.group_rows_into_days(parsed_rows)
+        time_mod_rows = self.rows
+        time_mods = self.parse_rows(time_mod_rows)
+        base_time_rows = self.convert_base_time_limits_to_rows(self.base_times)
+        base_times = self.parse_rows(base_time_rows)
+        return self.group_time_limits_into_days(list(base_times), self.group_time_mods_into_days(time_mods))
 
     def add_time_to_limit(self, time_to_add: timedelta):
         date_time = datetime.now()
@@ -222,15 +230,44 @@ class TimeLimit:
         return self.add_times_together(row[1] for row in parsed_rows)
 
     @staticmethod
-    def group_rows_into_days(rows):
+    def group_time_mods_into_days(time_mods):
         date_and_times = {}
-        for row in rows:
-            date = row[0].date()
+        for time_mod in time_mods:
+            date = time_mod[0].date()
             try:
-                date_and_times[date] += row[1]
+                date_and_times[date] += time_mod[1]
             except KeyError:
-                date_and_times[date] = row[1]
+                date_and_times[date] = time_mod[1]
         return date_and_times
+
+    def group_time_limits_into_days(self, base_times, time_modifications):
+        days = {}
+        for i, (base_time_day, base_time) in enumerate(base_times):
+            days[base_time_day.date()] = self.make_day(base_time,
+                                         self.try_to_get_time_modification(time_modifications, base_time_day))
+            day = base_time_day + timedelta(days=1)
+            while True:
+                try:
+                    if day >= base_times[i+1][0]:
+                        break
+                except IndexError:
+                    today = datetime.now()
+                    if day > datetime(today.year, today.month, today.day):
+                        break
+                days[day.date()] = self.make_day(base_time, self.try_to_get_time_modification(time_modifications, day))
+                day += timedelta(days=1)
+        return days
+
+    @staticmethod
+    def try_to_get_time_modification(time_modifications, day):
+        try:
+            return time_modifications[day.date()]
+        except KeyError:
+            return timedelta(seconds=0)
+
+    @staticmethod
+    def make_day(base_time, time_mods):
+        return base_time + time_mods
 
     @staticmethod
     def convert_base_time_limits_to_rows(base_time_limits):

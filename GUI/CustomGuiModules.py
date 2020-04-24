@@ -2,10 +2,13 @@ from GUI.NewUserUI import Ui_Dialog as NewUserUI
 from GUI import AreYouSureDialog as AreYouSureUI, Error as ErrorUI, SettingsUI, LogInUI, AdminUserWidgetUI,\
     TimedUserWidgetUI, ModifyTimeDialogUI, PathNotFoundUI, CrashReportUI
 from PyQt5 import QtCore, QtWidgets, QtGui
+from Notifications import NotificationManager
 from Utils.UsefulUtils import convert_string_to_bool
 from Utils.CachingUtils import read_from_config
 from Utils.FileUtils import resource_path
 import qdarkstyle
+from datetime import datetime, timedelta
+from Reminders import Reminder
 import os
 
 
@@ -464,30 +467,54 @@ class TimedUserWidgetSignals(QtCore.QObject):
 class TimedUserWidget(WidgetTemplate):
     def __init__(self, user, parent=None):
         super(TimedUserWidget, self).__init__(TimedUserWidgetUI.Ui_Form, parent=parent)
+        self.current_user = user
         self.set_user_label(user)
         self.set_base_time_label(user)
         self.signals = TimedUserWidgetSignals()
         self.ui.startPushButton.clicked.connect(lambda: self.signals.start_button_pushed.emit())
-        self.set_start_button_text(user)
+        self.notification_manager = NotificationManager(self)
+        self.reminder = Reminder(lambda: self.notification_manager.remind(self.current_user))
+        self.reminder.start()
+        self.set_start_button_text()
         self.ui.timeLabel.setStyleSheet("QLabel { border: 2px solid black; }")
-        self.update_time(user)
+        self.timer = QtCore.QElapsedTimer()
+        self.emitter = QtCore.QTimer()
+        self.make_timers()
+        self.last_time_left = timedelta(seconds=0)
+        self.last_time = None
+        self.last_state = None
+        self.last_notify_state = None
+        self.update_time(self.current_user)
+
+    @property
+    def time_left(self):
+        try:
+            time_elapsed = self.timer.elapsed() if self.timer.isValid() else 0
+            return self.last_time_left - timedelta(milliseconds=time_elapsed)
+        except AttributeError:
+            return timedelta(milliseconds=0)
 
     def start_button_clicked(self):
         self.signals.start_button_pushed.emit()
 
-    def set_start_button_text(self, user):
+    def set_start_button_text(self):
         try:
             self.startPushButton.setEnabled(True)
-            if user.user_clock.state:
-                self.startPushButton.setText("Stop")
-                self.startPushButton.setStyleSheet(" QPushButton { background-color: rgba(193, 66, 66, 0.37); }")
+            if self.last_state:
+                if self.ui.startPushButton.text() != "Stop":
+                    self.startPushButton.setText("Stop")
+                    self.startPushButton.setStyleSheet(" QPushButton { background-color: rgba(193, 66, 66, 0.37); }")
+                    self.notification_manager.reset()
+                    self.notification_manager.interacted(self.current_user)
             else:
-                self.startPushButton.setText("Start")
-                self.startPushButton.setStyleSheet(" QPushButton { background-color: rgba(72, 191, 63, 0.32); }")
+                if self.ui.startPushButton.text() != "Start":
+                    self.startPushButton.setText("Start")
+                    self.startPushButton.setStyleSheet(" QPushButton { background-color: rgba(72, 191, 63, 0.32); }")
+                    self.notification_manager.reset()
+                    self.notification_manager.interacted(self.current_user)
         except AttributeError:
             self.startPushButton.setText("Start")
-            self.startPushButton.setStyleSheet("")
-            self.startPushButton.setEnabled(False)
+            self.startPushButton.setStyleSheet(" QPushButton { background-color: rgba(72, 191, 63, 0.32); }")
 
     def set_user_label(self, user):
         try:
@@ -505,24 +532,28 @@ class TimedUserWidget(WidgetTemplate):
             self.baseTimeLabel.setText(f"Time Limit:")
             self.baseTimeLabel.setEnabled(False)
 
-    def set_time_label_color(self, user):
+    def set_time_label_color(self):
+        state = self.current_user.get_state_from_time_left(self.time_left.total_seconds()/60)
         try:
-            if user.state == "times_up":
+            if state == "times_up" != self.last_notify_state:
                 self.timeLabel.setStyleSheet(self.timeLabel.styleSheet() +
                                              " QLabel { color: #fc0303; } ")
-            elif user.state == "warning":
+                self.notification_manager.check_alarm(self.current_user)
+            elif state == "warning" != self.last_notify_state:
                 self.timeLabel.setStyleSheet(self.timeLabel.styleSheet() +
                                              " QLabel { color: #EA6500; } ")
-            else:
+                self.notification_manager.check_warning(self.current_user)
+            elif state == "idle" != self.last_notify_state:
                 self.timeLabel.setStyleSheet(self.timeLabel.styleSheet() +
                                              " QLabel { color: #ffffff; } ")
+            self.last_notify_state = state
         except AttributeError:
             self.timeLabel.setStyleSheet("QLabel { border: 2px solid black; }")
             self.timeLabel.setEnabled(False)
 
-    def update_time(self, user):
+    def set_time(self):
         try:
-            negative, formatted_time = format_time(user.time_left())
+            negative, formatted_time = format_time(self.time_left)
             if negative:
                 self.timeLabel.setText(f"Went Over: {formatted_time}")
             else:
@@ -530,8 +561,39 @@ class TimedUserWidget(WidgetTemplate):
             self.timeLabel.setEnabled(True)
         except AttributeError:
             self.timeLabel.setText(f"Time Left:")
-        self.set_time_label_color(user)
-        self.set_start_button_text(user)
+        self.set_time_label_color()
+        self.set_start_button_text()
+
+    def make_timers(self):
+        self.emitter.setInterval(100)
+        self.emitter.timeout.connect(self.set_time)
+        self.timer = QtCore.QElapsedTimer()
+
+    def reset_timers(self):
+        self.emitter.stop()
+        self.make_timers()
+
+    def sync_with_user(self, user):
+        self.current_user = user
+        self.notification_manager.reset()
+        self.last_time_left = self.current_user.time_left()
+        self.last_time = [t for t in user.user_clock.current_time_set]
+        self.reset_timers()
+        self.last_state = self.current_user.user_clock.state
+        if self.last_state:
+            self.timer.start()
+            self.emitter.start()
+        self.set_time()
+
+    def update_time(self, user):
+        time_set = [t for t in user.user_clock.current_time_set]
+        discrepancy = self.time_left - user.time_left()
+        if time_set != self.last_time or user != self.current_user or not self.is_acceptable_discrepancy(discrepancy):
+            self.sync_with_user(user)
+
+    @staticmethod
+    def is_acceptable_discrepancy(discrepancy):
+        return -.1 <= discrepancy.total_seconds() <= .1
 
 
 class CrashReportDialog(DialogTemplate):

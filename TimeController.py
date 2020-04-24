@@ -18,8 +18,6 @@ class TimeController:
         self.current_user = None
         self.last_load = None
         self.load_queued = False
-        self.notification_manager = NotificationManager(self)
-        self.time_since_last_warning_tone = None
         self.thread_pool = QThreadPool()
         self.time_checker = None
         self.make_time_checker()
@@ -39,8 +37,6 @@ class TimeController:
             pass
         self.time_checker = TimeChecker(self)
         self.parent.connect_time_checker_signals(self.time_checker)
-        self.time_checker.signals.warning_time.connect(self.notification_manager.check_warning)
-        self.time_checker.signals.times_up.connect(self.notification_manager.check_alarm)
         self.time_checker.signals.updated_remotely.connect(self.parent.updated_remotely)
         self.time_checker.signals.file_not_found.connect(self.load)
         self.thread_pool.start(self.time_checker)
@@ -97,7 +93,6 @@ class TimeController:
     def switch_user(self, user, login_required=True):
         if not login_required or self.parent.log_in(user):
             self.current_user = user
-            self.notification_manager.reset()
             self.load_new_current_user_into_gui(self.current_user)
             try:
                 if user.user_type != "admin":
@@ -112,14 +107,6 @@ class TimeController:
         time_limit_history = user.time_limit.history
         for time_limit_date, time_limit in time_limit_history.items():
             yield self.make_day(time_limit_date, time_limit, clock_history)
-            i = 1
-            while True:
-                date = time_limit_date + timedelta(days=i)
-                if self.should_bridge_date(date, time_limit_history):
-                    i += 1
-                    yield self.make_day(date, time_limit, clock_history)
-                else:
-                    break
 
     @staticmethod
     def make_day(date, time_limit, clock_history):
@@ -138,9 +125,7 @@ class TimeController:
 
     def interact(self):
         if self.current_user:
-            self.notification_manager.reset()
             self.current_user.user_clock.interact()
-            self.notification_manager.interacted(self.current_user)
 
 
 class TimeCheckerSignals(QObject):
@@ -169,15 +154,13 @@ class TimeChecker(QRunnable):
                 break
             except RuntimeError:
                 break
-            time.sleep(.5)
+            time.sleep(10)
 
     def run_users_checks(self):
         try:
             for user in self.parent.current_users.values():
                 try:
                     if user.user_type == "timed_user":
-                        self.check_for_time_up(user)
-                        self.check_for_warning_time(user)
                         self.update_time(user)
                 except KeyError:
                     pass

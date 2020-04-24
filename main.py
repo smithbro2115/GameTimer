@@ -195,7 +195,7 @@ def custom_except_hook(exctype, value, tb):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    sys.excepthook = custom_except_hook
+    # sys.excepthook = custom_except_hook
     ui = Gui()
     mainWindow = MainWindow(ui)
     ui.setupUi(mainWindow)

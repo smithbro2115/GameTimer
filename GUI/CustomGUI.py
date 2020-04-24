@@ -20,7 +20,7 @@ class GUIMessageController:
     def time_updated(self, user):
         try:
             self.widget.update_time(user)
-        except (AttributeError, PermissionError):
+        except (AttributeError, PermissionError, OSError):
             pass
 
     def users_loaded(self):

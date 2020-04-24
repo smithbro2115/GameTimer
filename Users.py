@@ -69,6 +69,14 @@ class TimedUser(User):
         else:
             return 'idle'
 
+    def get_state_from_time_left(self, minutes_left):
+        if self.warning_time >= minutes_left >= 0:
+            return 'warning'
+        elif minutes_left*60 <= 0:
+            return 'times_up'
+        else:
+            return 'idle'
+
     @property
     def base_time(self):
         if not UsefulUtils.convert_string_to_bool(self.info['follow_global']):
@@ -171,5 +179,5 @@ def edit_user(info, user):
 # test_user = create_user({'name': "Joshua", 'user_type': 'timed_user', 'base_time': "1:00:00", "warning_time": 5,
 #                          'follow_global': False})
 # print(test_user.info)
-# test_user = load_users()[0]
-# test_user.user_clock.interact()
+# test_user = load_users()[1]
+# print(test_user.user_clock.history)
